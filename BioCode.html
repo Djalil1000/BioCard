@@ -1,114 +1,294 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8">
   <title>BioCards — Учим биологию!</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f8ff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    html, body {
+      height: 100%;
       margin: 0;
-      padding: 40px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #a8edea, #fed6e3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    h1 {
-      color: #2a7f62;
+    #welcome, #quiz {
+      text-align: center;
+      background: linear-gradient(135deg, #9aeece, #ffcaf6);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+      max-width: 500px;
+      width: 90%;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    button {
+      padding: 12px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      background-color: #2a7f62;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin: 10px 5px;
+    }
+
+    button:hover {
+      background-color: #246b54;
+    }
+
+    .feedback-btn.green {
+      background-color: #4CAF50 !important;
+    }
+
+    .feedback-btn.red {
+      background-color: #f44336 !important;
+    }
+
+    #score {
+      margin-bottom: 20px;
+      color: #3b3b3b;
     }
 
     #card {
       background: white;
-      width: 300px;
-      height: 200px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      text-align: center;
       padding: 20px;
-      cursor: pointer;
-      margin: 20px 0;
-      transition: transform 0.3s;
+      border-radius: 15px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+      margin-bottom: 20px;
     }
 
-    button {
-      padding: 10px 20px;
-      margin: 10px;
-      font-size: 16px;
+    #options {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .option {
+      flex: 1 1 45%;
+      padding: 12px;
+      background-color: #2a7f62;
+      color: rgb(255, 255, 255);
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      background-color: #2a7f62;
-      color: white;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
+
+    .option:hover {
+      background-color: #246b54;
+    }
+
+    .correct {
+      background-color: #4CAF50 !important;
+    }
+
+    .wrong {
+      background-color: #f44336 !important;
     }
 
     #result {
-      margin-top: 20px;
+      font-size: 18px;
       font-weight: bold;
+    }
+
+    #endActions {
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <h1>BioCards — Учим биологию</h1>
-  <div id="card" onclick="flipCard()">Нажми, чтобы показать ответ</div>
-  <div>
-    <button onclick="knewAnswer()">Я знал</button>
-    <button onclick="didNotKnow()">Не знал</button>
+
+  <div id="welcome">
+    <h1>Добро пожаловать в BioCards</h1>
+    <p>Нажмите кнопку ниже, чтобы начать тест по биологии.</p>
+    <button id="startBtn">Начать тест</button>
   </div>
-  <div id="result"></div>
+
+  <div id="quiz" class="hidden">
+    <div id="score">Правильно: 0 | Неправильно: 0</div>
+    <div id="card">Вопрос появится здесь</div>
+    <div id="options"></div>
+    <div id="result"></div>
+
+    <div id="endActions" class="hidden">
+      <p>Вы знали большинство ответов?</p>
+      <button class="feedback-btn" id="knowBtn">Я знал</button>
+      <button class="feedback-btn" id="dontKnowBtn">Я не знал</button>
+      <div style="margin-top: 20px;">
+        <button class="restart-btn" onclick="restartQuiz()">Пройти заново</button>
+        <button class="restart-btn" onclick="goBack()">Назад</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     const cards = [
-      { question: "Что такое митоз?", answer: "Процесс деления клетки на две идентичные" },
-      { question: "Функция рибосом?", answer: "Синтез белка" },
-      { question: "Самая большая клетка?", answer: "Яйцеклетка" },
-      { question: "Что делает хлорофилл?", answer: "Поглощает свет для фотосинтеза" },
-      { question: "Где находится ДНК?", answer: "В ядре клетки" }
+      {
+        question: "Что такое митоз?",
+        options: ["Деление клетки на две", "Выработка энергии", "Процесс фотосинтеза", "Синтез белка"],
+        answer: "Деление клетки на две"
+      },
+      {
+        question: "Функция митохондрий?",
+        options: ["Запас воды", "Производство энергии", "Передача сигналов", "Разделение клеток"],
+        answer: "Производство энергии"
+      },
+      {
+        question: "Основная функция рибосом?",
+        options: ["Синтез белка", "Дыхание клетки", "Перенос кислорода", "Сборка ДНК"],
+        answer: "Синтез белка"
+      },
+      {
+        question: "Где находится ДНК?",
+        options: ["В ядре клетки", "В мембране", "В цитоплазме", "В рибосоме"],
+        answer: "В ядре клетки"
+      },
+      {
+        question: "Что делает хлорофилл?",
+        options: ["Поглощает свет", "Фильтрует воду", "Передает кислород", "Хранит питательные вещества"],
+        answer: "Поглощает свет"
+      }
     ];
 
-    let current = 0;
-    let showAnswer = false;
-    let correct = 0, wrong = 0;
-
+    const welcome = document.getElementById("welcome");
+    const quiz = document.getElementById("quiz");
     const card = document.getElementById("card");
+    const optionsDiv = document.getElementById("options");
+    const score = document.getElementById("score");
     const result = document.getElementById("result");
+    const endActions = document.getElementById("endActions");
+    const knowBtn = document.getElementById("knowBtn");
+    const dontKnowBtn = document.getElementById("dontKnowBtn");
+
+    let current = 0;
+    let correct = 0;
+    let wrong = 0;
+    let canAnswer = true;
+    let shuffledCards = [];
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
 
     function updateCard() {
-      showAnswer = false;
-      card.textContent = cards[current].question;
-    }
-
-    function flipCard() {
-      if (!cards[current]) return;
-      showAnswer = !showAnswer;
-      card.textContent = showAnswer ? cards[current].answer : cards[current].question;
-    }
-
-    function knewAnswer() {
-      correct++;
-      nextCard();
-    }
-
-    function didNotKnow() {
-      wrong++;
-      nextCard();
-    }
-
-    function nextCard() {
-      current++;
-      if (current >= cards.length) {
-        card.textContent = "Вы завершили игру!";
-        result.innerHTML = 'Правильно: ${correct}' | 'Неправильно: ${wrong}';
-      } else {
-        updateCard();
+      if (current >= shuffledCards.length) {
+        card.textContent = "Вы завершили тест!";
+        optionsDiv.innerHTML = "";
+        result.innerHTML = "";
+        endActions.classList.remove("hidden");
+        return;
       }
+
+      canAnswer = true;
+      const currentCard = shuffledCards[current];
+      card.textContent = currentCard.question;
+      optionsDiv.innerHTML = "";
+
+      const shuffledOptions = shuffle([...currentCard.options]);
+
+      shuffledOptions.forEach(option => {
+        const button = document.createElement("button");
+        button.className = "option";
+        button.textContent = option;
+        button.onclick = () => selectAnswer(option, button, currentCard.answer);
+        optionsDiv.appendChild(button);
+      });
     }
 
-    updateCard();
+    function updateScore() {
+      score.textContent = `Правильно: ${correct} | Неправильно: ${wrong}`;
+    }
+
+    function selectAnswer(selected, button, correctAnswer) {
+      if (!canAnswer) return;
+      canAnswer = false;
+
+      const buttons = document.querySelectorAll(".option");
+      buttons.forEach(btn => btn.disabled = true);
+
+      if (selected === correctAnswer) {
+        correct++;
+        result.style.color = "green";
+        result.textContent = "Правильно!";
+        button.classList.add("correct");
+      } else {
+        wrong++;
+        result.style.color = "red";
+        result.textContent = `Неправильно! Правильный ответ: ${correctAnswer}`;
+        button.classList.add("wrong");
+
+        buttons.forEach(btn => {
+          if (btn.textContent === correctAnswer) {
+            btn.classList.add("correct");
+          }
+        });
+      }
+
+      updateScore();
+      current++;
+
+      setTimeout(() => {
+        result.textContent = "";
+        updateCard();
+      }, 1500);
+    }
+
+    function restartQuiz() {
+      current = 0;
+      correct = 0;
+      wrong = 0;
+      shuffledCards = shuffle([...cards]);
+      updateScore();
+      result.textContent = "";
+      endActions.classList.add("hidden");
+
+      knowBtn.classList.remove("green");
+      dontKnowBtn.classList.remove("red");
+      knowBtn.disabled = false;
+      dontKnowBtn.disabled = false;
+
+      updateCard();
+    }
+
+    function goBack() {
+      quiz.classList.add("hidden");
+      welcome.classList.remove("hidden");
+
+      // Сброс результата
+      result.textContent = "";
+    }
+
+    knowBtn.addEventListener("click", () => {
+      knowBtn.classList.add("green");
+      dontKnowBtn.disabled = true;
+    });
+
+    dontKnowBtn.addEventListener("click", () => {
+      dontKnowBtn.classList.add("red");
+      knowBtn.disabled = true;
+    });
+
+    document.getElementById("startBtn").addEventListener("click", () => {
+      welcome.classList.add("hidden");
+      quiz.classList.remove("hidden");
+      restartQuiz();
+    });
   </script>
+
 </body>
 </html>
